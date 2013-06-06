@@ -1,0 +1,103 @@
+#container {
+	width:720px
+}
+
+#header {
+	background-color:#780000;
+	color:#FFFFFF;
+	text-align:center;
+}
+
+h1 {
+	margin-bottom:0;
+}
+
+#entrada {
+	background-color:#780000;
+	color:#FFFFFF;
+	text-align:center;
+	height:35px;
+}
+
+#menuIzquierdo {
+	background-color:#780000;
+	color:#FFFFFF;
+	height:400px;
+	width:200px;
+	float:left;
+}
+
+#menuDerecho {
+	background-color:#780000;
+	color:#FFFFFF;
+	height:400px;
+	width:200px;
+	text-align:center;
+	float:right;
+}
+
+#mitadDerecho {
+	height:200px;
+	width:200px;
+	float:left;
+}
+
+#turn {
+	text-align:center;
+	color:#280000;
+}
+
+#content {
+	background-color:#EEEEEE;
+	color:#000000;
+	height:400px;
+	width:320px;
+	float:left;
+}
+
+#footer {
+	background-color:#780000;
+	color:#FFFFFF;
+	clear:both;
+	text-align:center;
+}
+
+#mensajes{
+	text-align:center;
+}
+
+#continuar {
+	color:#000000;
+	text-decoration: underline;
+}
+
+#dashboard {
+  height:278px;
+  width: 278px;
+  float: none;
+  background-color: #383838;
+  border: 1px solid #000000;
+  margin: 10px;
+  padding: 10px;
+  font-size: .9em;
+}
+
+#dashboard .boton { 
+  height:50px;
+  width: 50px;
+  float: right;
+  text-align: center;
+  font-size:3em;
+  margin: 10px;
+  padding: 10px;
+  background-color: #606060;
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  border-right: 1px solid #000000;
+}
+
+a {
+   color: #FFFF00;
+   text-decoration: none;
+}

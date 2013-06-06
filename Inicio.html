@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="http://code.jquery.com/jquery-1.8.1.min.js"></script>
+	<script src="http://localhost:6969/socket.io/socket.io.js"></script>
+	<script src="logicaCliente.js"></script>
+	<link rel="stylesheet" href="elEstilo.css" type="text/css" media="screen" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>Juego Del Gato</title>
+</head>
+
+<body>
+
+	<div id="container">
+		<div id="header">
+			<h1 >JUEGO DEL GATO</h1><br>
+		</div>
+		<div id="entrada">
+			<label for="nombreUsuario">Nombre de usuario:</label>
+			<input type="text" id="nombreUsuario" />
+			<input type="button" value="Registrarte" id="registrar" />
+		</div>
+	
+		<div id="menuIzquierdo">
+			<div>
+				<b>JUGADORES:</b><br>
+			</div>
+			<div id="stats">
+				<div id="jugadores"></div>
+			</div>
+		</div>
+
+		<div id="content">
+			<div id="turno"></div>
+			<div id="dashboard">
+				<div class="boton" id="0"></div>
+				<div class="boton" id="1"></div>
+				<div class="boton" id="2"></div>
+				<div class="boton" id="3"></div>
+				<div class="boton" id="4"></div>
+				<div class="boton" id="5"></div>
+				<div class="boton" id="6"></div>
+				<div class="boton" id="7"></div>
+				<div class="boton" id="8"></div>
+			</div>
+			<div>
+				<a href ="#" id="continuar">CONTINUAR</a>
+			</div>
+		</div>
+
+		<div id="menuDerecho">
+			<div id="mitadDerecho">
+				<div><b>INVITADOS:</b><br></div>
+				<div id="jugadoresInvitados"></div>
+			</div>
+
+			<div id="mitadDerecho">
+				<div><b>INVITACIONES:</b><br></div>
+				<div id="invitaciones"></div>
+			</div>
+		</div>
+
+		<div id="footer">
+			DE LA ROSA
+		</div>
+
+		<div id='debug'></div>
+		<div id='debug2'></div>
+
+	</div>
+ 
+</body>
+
+</html>
