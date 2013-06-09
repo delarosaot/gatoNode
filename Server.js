@@ -107,24 +107,21 @@ io.sockets.on('connection', function (socket) {
 		
 	});
 	
+
 	// Registra jugador en la lista
 	socket.on('registrarJugador', function(data) {
 		//data contiene nombreUsuario y sessionid
 
-		//console.log("Registrando a: " + data.nombreUsuario + ' Id: ' + data.id);
-		
 		for (var i = 0; i < listaJugadores.length; i++)
 		{
 			if (listaJugadores[i].id == data.id)
-			{
-				socket.emit('usuarioInvalido');
-				socket.emit('yaEstaAqui');
+			{// El id del jugador se encuentra registrado
+				socket.emit('idEnUso');
 				return;
 			}
 			else if (listaJugadores[i].nombreUsuario == data.nombreUsuario)
-			{
-				socket.emit('usuarioInvalido');
-				socket.emit('yaEstaRegistrado');
+			{// El nombre de usuario ya se encuentra en uso
+				socket.emit('nombreUsuarioEstaRegistrado');
 				return;
 			}
 		}
@@ -139,9 +136,11 @@ io.sockets.on('connection', function (socket) {
 		nuevoCliente.conexion = socket; // Socket de conexion
 		clientes.push(nuevoCliente); // Lo inserta en el arreglo de clientes
 
+		// Apagar el boton de registro
+		socket.emit('apagarBotonRegistrar');
+
 		// Llamada a actualizar lista de jugadores, envia: socket, y la lista de jugadores
 		mybroadcast(socket, 'actualizarConteoDeJugadores',{jugadores:listaJugadores});
-		
 	});	
 
 	// Envia invitacion de juego

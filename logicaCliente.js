@@ -43,13 +43,13 @@ socket.on('connection', function(dataConnection) {
 		});
 				
 		// Avisa que el nombre ya se esta usando
-		socket.on('yaEstaRegistrado', function() {
-			alert('El nombre de usuario ya esta siendo utilizado');
+		socket.on('nombreUsuarioEstaRegistrado', function() {
+			alert('El nombre de usuario ya esta siendo utilizado.');
 		});
 				
 		// Avisa que el jugador ya se encuentra registrado
-		socket.on('yaEstaAqui', function() {
-			alert("Ya estas registrado.");	
+		socket.on('idEnUso', function() {
+			alert("El ID de usuario esta siendo utilizado.");	
 		});
 		
 		// Avisa de cancelacion de  y borra tablero y turno
@@ -216,22 +216,8 @@ socket.on('connection', function(dataConnection) {
 				// Asigna el evento click a 'ACEPTACION'
 				$('#aceptar_'+data.id).bind('click', function() {
 					//jugador1 -> el que invita; jugador2 -> quien responde
-					//Declina las invitaciones abiertas
-					//$('#debug').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
-
-					for (var i = 0; i < listaInvitaciones.length; i++)
-					{
-						if (listaInvitaciones[i] != data.id)
-						{   // listaInvitaciones solo contiene IDs
-							socket.emit('declinar',{jugador1Id:listaInvitaciones[i],jugador2Id:socket.socket.sessionid});
-							$('#declinar_'+data.id).parents('.invitacion').remove();
-						}
-					}
-					for (var i = listaInvitaciones.length - 1; i > -1; i--)
-						borraPorIndice(listaInvitaciones,i);
-					$('#invitaciones').empty();
-					//$('#debug2').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
-					//$('.jugadores').unbind('click');	
+					//$('.jugadores').unbind('click');
+					borrarInvitacionesRecibidas(data);
 					$('.jugadores').click(function(){return false;});
 					jugando = true;
 					socket.emit('aceptar', {jugador1Id:data.id, jugador2Id:socket.socket.sessionid});
@@ -257,6 +243,24 @@ socket.on('connection', function(dataConnection) {
 			
 		});
 		
+		
+		function borrarInvitacionesRecibidas (data) {
+			//data -> contiene sessionid y nombreUsuario de quien invita
+			//$('#debug').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
+			//Declina las invitaciones abiertas
+			for (var i = 0; i < listaInvitaciones.length; i++)
+				{
+					if (listaInvitaciones[i] != data.id)
+						{   // listaInvitaciones solo contiene IDs
+							socket.emit('declinar',{jugador1Id:listaInvitaciones[i],jugador2Id:socket.socket.sessionid});
+							$('#declinar_'+data.id).parents('.invitacion').remove();
+						}
+					}
+			//$('#debug2').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
+			for (var i = listaInvitaciones.length - 1; i > -1; i--)
+					borraPorIndice(listaInvitaciones,i);
+			$('#invitaciones').empty();
+		}
 
 		// La invitacion ha sido rechazada
 		socket.on('declinarLadoCliente', function(data) {
@@ -284,6 +288,14 @@ socket.on('connection', function(dataConnection) {
 		});
 
 
+		//Apaga el boron de registar
+		socket.on('apagarBotonRegistrar', function(){
+			$('#registrar').hide();
+			$('#footer').text('DE LA ROSA ' + socket.socket.sessionid);
+		});
+
+
+
 	var finalizarJuego = function() {
 			cleanDashboard();
 			$('#dashboard').hide(); // Esconde el tablero
@@ -301,17 +313,14 @@ $(document).ready(function() {
 	$('#registrar').bind('click', function() {
 		// Revisa si se seleciono un nombre de usuario
 		if (!$('#nombreUsuario').val().length)
-		{   // No se seleciono nombre de usuario
+		{   // No se selecionó nombre de usuario
 			alert('Selecciona un nombre de usuario.');
 			return;
 		}
 		
 		// Registra el nombre de usuario
 		socket.emit('registrarJugador', {nombreUsuario:$('#nombreUsuario').val(), id:socket.socket.sessionid});
-		$('#nombreUsuario').attr('disabled',true);
-		$('#registrar').hide();
-		$('#footer').text('DE LA ROSA ' + socket.socket.sessionid);
-		jugando = false;	
+		jugando = false;
 	});
 
 	// Se selecciona una pareja de juego
@@ -319,7 +328,7 @@ $(document).ready(function() {
 		// Llama funcion que Invita un jugador, enviando
 		// el identificador del jugador seleccionado
 
-		//Seccion para no invitar al mismo varias veces
+		//Seccion para asegurar solo una invitacion por jugador
 		var invitar = true;
 		for (var i = 0; i < jugadoresInvitados.length; i++)
 			if(jugadoresInvitados[i] == $(this).attr('id'))
@@ -330,7 +339,6 @@ $(document).ready(function() {
 			socket.emit('invitarJugador', {id:$(this).attr('id')});
 			jugadoresInvitados.push($(this).attr('id'));
 		}
-
 	});
 
 	$('#dashboard').hide(); // Esconde el tablero
