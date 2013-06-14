@@ -29,7 +29,7 @@ socket.on('connection', function(dataConnection) {
 				
 		// Actualiza el display de jugadores
 		socket.on('actualizarConteoDeJugadores', function(data) {
-			// data -> contiene la lista de juagdores
+			// data -> contiene la lista de jugadores
 
 			$('#jugadores').html('Jugadores conectados: ' + data.jugadores.length + '.<br />');
 			//Actualiza la lista de jugadores 
@@ -41,12 +41,27 @@ socket.on('connection', function(dataConnection) {
 					html += '</ul>';
 			$('#jugadores').append(html);
 		});
+
+
+		//Actualiza display de invitados
+		socket.on('actualizaListaInvitados', function(data){
+			//data -> {jugadorABorrar:jugadorABorrar}
+			var html = '';
+			for (var i = 0; i < jugadoresInvitados.length; i++)
+				if(jugadoresInvitados[i] != data.jugadorABorrar.id)
+					html += '<div class="invitado">' + jugadoresInvitados[i] + '</div>';
+
+			$('#Invitados').append(html);
+
+		});		
+
 				
 		// Avisa que el nombre ya se esta usando
 		socket.on('nombreUsuarioEstaRegistrado', function() {
 			alert('El nombre de usuario ya esta siendo utilizado.');
 		});
 				
+
 		// Avisa que el jugador ya se encuentra registrado
 		socket.on('idEnUso', function() {
 			alert("El ID de usuario esta siendo utilizado.");	
@@ -194,7 +209,7 @@ socket.on('connection', function(dataConnection) {
 		// El Id del invitado no es correcto y se tiene un error
 		// de quien se quiere invitar
 		socket.on('idDeInvitacionErroneo', function() {
-			alert('Error en Id');
+			alert('El Id del jugador al que quieres invitar es incorrecto.');
 		});
 			
 
@@ -205,7 +220,7 @@ socket.on('connection', function(dataConnection) {
 			var html = '<div class="invitacion">' + data.nombreUsuario +
 			           '<a href="#" id="aceptar_' + data.id +
 			           '"> Aceptar</a> | <a href="#" id="declinar_'+data.id+'">Declinar</a></div>';
-			$('#debug').html('JUGANDO: '+jugando);
+			$('#debug').html('ANFITRION: '+data.id+' NOMBRE: '+data.nombreUsuario);
 			if(!jugando)
 			{
 				$('#invitaciones').append(html);//.append('<br/>');
@@ -223,7 +238,7 @@ socket.on('connection', function(dataConnection) {
 					socket.emit('aceptar', {jugador1Id:data.id, jugador2Id:socket.socket.sessionid});
 				});
 
-				// Asigna el evento click a 'Rechazo'
+				// Asigna el evento click a 'RECHAZO'
 				$('#decline_'+data.id).bind('click', function() {
 					socket.emit('declinar', {jugador1Id:data.id, jugador2Id:socket.socket.sessionid});
 					$('#declinar_'+data.id).parents('.invitacion').remove();
@@ -235,6 +250,10 @@ socket.on('connection', function(dataConnection) {
 					{ borraPorIndice(listaInvitaciones,indice); }
 					$("#debug2").html(listaInvitaciones + 'Despues');					
 				});
+
+				// Avisa de invitacion entregada
+				socket.emit('invitacionEntregada',{idDeQuienInvita:data.id,idResponde:socket.socket.sessionid});
+				socket.emit('agregarListaInvitadosS',{idDeQuienInvita:data.id,idResponde:socket.socket.sessionid});
 			}
 			else
 			{
@@ -244,6 +263,18 @@ socket.on('connection', function(dataConnection) {
 		});
 		
 		
+		//Agrega invitado a lista de invitados
+		socket.on('agregarListaInvitadosC',function(data){
+			//{idResponde:data.idResponde, nombreInvitado:regresaJugadorPorId(data.idResponde).nombreUsuario}
+			jugadoresInvitados.push(data.idResponde);
+
+			var html = '<div class="invitado">' + data.nombreInvitado + '</div>';
+			$('#Invitados').append(html);
+
+			$('#debug').html('INVITADO: ' + data.idResponde + 'NOMBRE: ' + data.nombreInvitado);
+		});
+
+
 		function borrarInvitacionesRecibidas (data) {
 			//data -> contiene sessionid y nombreUsuario de quien invita
 			//$('#debug').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
@@ -330,14 +361,24 @@ $(document).ready(function() {
 
 		//Seccion para asegurar solo una invitacion por jugador
 		var invitar = true;
+		var idAInvitar  = $(this).attr('id');
 		for (var i = 0; i < jugadoresInvitados.length; i++)
-			if(jugadoresInvitados[i] == $(this).attr('id'))
-				invitar = false
+		{
+			if(jugadoresInvitados[i] == idAInvitar)
+				invitar = false;
+		}
+			
+		for (var i = 0; i < listaInvitaciones.length; i++)
+		{
+			if(listaInvitaciones[i] == idAInvitar)
+				invitar = false;
+		}
+			
 		if (invitar)	
 		{
 			// Envia la invitacion al jugador seleccionado
-			socket.emit('invitarJugador', {id:$(this).attr('id')});
-			jugadoresInvitados.push($(this).attr('id'));
+			socket.emit('invitarJugador', {id:idAInvitar});
+			//jugadoresInvitados.push($(this).attr('id'));
 		}
 	});
 
@@ -346,3 +387,18 @@ $(document).ready(function() {
 	$('#continuar').hide(); // Esconde el link de continuar
 
 });
+
+/*
+var html = '<div class="invitacion">' + data.nombreUsuario +
+			           '<a href="#" id="aceptar_' + data.id +
+			           '"> Aceptar</a> | <a href="#" id="declinar_'+data.id+'">Declinar</a></div>';
+
+
+var html = '<ul>';
+			for (var i = 0; i < data.jugadores.length; i++)
+				if (data.jugadores[i].id != socket.socket.sessionid) // Pone en html jugadores diferentes al de la sesion
+					html += '<li><a href="#" class="jugadores" id="' + data.jugadores[i].id +
+					 '">' + data.jugadores[i].nombreUsuario + '</a></li>';
+					html += '</ul>';
+
+*/			           

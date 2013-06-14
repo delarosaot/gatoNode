@@ -54,6 +54,9 @@ io.sockets.on('connection', function (socket) {
 		
 		//Se envia lista de jugadores actualizada
 		mybroadcast(socket, 'actualizarConteoDeJugadores',{jugadores:listaJugadores});
+		//Se envia jugador que se desconecta
+		var jugadorABorrar = regresaJugadorPorId(socket.id);
+		mybroadcast(socket, 'actualizaListaInvitados', {jugadorABorrar:jugadorABorrar});
 	});
 		
 	socket.on('jugada', function(data) {
@@ -150,7 +153,6 @@ io.sockets.on('connection', function (socket) {
 	    // Toma datos del jugador del socket actual de la lista de jugadores
 	    // que es quien genera la invitacion
 		var jugador = regresaJugadorPorId(socket.id); 
-		//console.log("Desde invitarJugador; Nombre del jugador " + player.nombreUsuario);
 		
 		if (!jugador)
 		{// jugador actual no registrado	
@@ -180,13 +182,32 @@ io.sockets.on('connection', function (socket) {
 			return;
 		}
 		
-		// Se envia la invitacion de juego
+		// Se envia la invitacion de juego con el id del jugador que genera la invitacion (jugador actual)
 		conexionCliente.emit('invitacion', {id:socket.id, nombreUsuario:jugador.nombreUsuario}); // Envia la invitacion
-		// con el id del jugador que genera la invitacion (jugador actual)
-		jugador.agregaJugadorAFilaDeEspera(data.id); // Agrega el jugador al que se esta invitando a la lista de espera
+
+		//jugador.agregaJugadorAFilaDeEspera(data.id); // Agrega el jugador al que se esta invitando a la lista de espera
 		// del jugador que invita
 	});
 	
+	
+	//Agrega jugador invitado a la lista de jugador que invita
+	socket.on('invitacionEntregada',function(data){
+		//{idDeQuienInvita:data.id,idResponde:socket.socket.sessionid}
+		console.log('ANFITRION: '+data.idDeQuienInvita+' INVITADO: '+data.idResponde);
+		var jugadorInvita = regresaJugadorPorId(data.idDeQuienInvita);
+		jugadorInvita.agregaJugadorAFilaDeEspera(data.idResponde);
+	});
+
+
+	//Llama funcion que agrega a lista de invitados
+	socket.on('agregarListaInvitadosS',function(data){
+		//{idDeQuienInvita:data.id,idResponde:socket.socket.sessionid}
+		var conexionQueInvita = regresaClientePorId(data.idDeQuienInvita);
+		var jugadorInvitado = regresaJugadorPorId(data.idResponde);
+		conexionQueInvita.emit('agregarListaInvitadosC',{idResponde:data.idResponde,nombreInvitado:jugadorInvitado.nombreUsuario});
+	});
+
+
 	// Acepta la invitacion del juego
 	socket.on('aceptar', function(data) {
 		// data - > contiene jugador1ID es quien invita y jugador2ID a quien queremos invitar
