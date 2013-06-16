@@ -45,17 +45,37 @@ socket.on('connection', function(dataConnection) {
 
 		//Actualiza display de invitados
 		socket.on('actualizaListaInvitados', function(data){
-			//data -> {jugadorABorrar:jugadorABorrar}
+			//data -> {jugadorABorrar:jugadorABorrar, jugadores:listaJugadores}
+			//La lista de jugadores ya NO tiene el jugador a borrar
 			var html = '';
+			$('#Invitados').empty();
+			var nombreInvitado;
+			var temp = new Array();
+			var idABorrar = data.jugadorABorrar.id;
 			for (var i = 0; i < jugadoresInvitados.length; i++)
-				if(jugadoresInvitados[i] != data.jugadorABorrar.id)
-					html += '<div class="invitado">' + jugadoresInvitados[i] + '</div>';
-
-			$('#Invitados').append(html);
-
+			{
+				if (jugadoresInvitados[i] != idABorrar)
+				{
+					temp.push(jugadoresInvitados[i]);
+					nombreInvitado = regresaNombrePorId({idABuscar:jugadoresInvitados[i],jugadores:data.jugadores});
+					html = '<div class="invitado">' + nombreInvitado + '</div>';
+					$('#Invitados').append(html);
+				}
+			}
+			jugadoresInvitados = temp;	// Remplaza lista de jugadores invitados con la actualizada
 		});		
 
-				
+			
+		function regresaNombrePorId(data){
+			// data -> {idABuscar:jugadoresInvitados[i],jugadores:data.jugadores}
+			for (var i = 0; i < data.jugadores.length; i++)
+			{
+				if(data.idABuscar == data.jugadores[i].id){
+					return data.jugadores[i].nombreUsuario;
+				}
+			}
+		}
+
 		// Avisa que el nombre ya se esta usando
 		socket.on('nombreUsuarioEstaRegistrado', function() {
 			alert('El nombre de usuario ya esta siendo utilizado.');
@@ -105,16 +125,13 @@ socket.on('connection', function(dataConnection) {
 				return;
 		
 			//Eliminar invitaciones que el generó y no han sido contestadas
-			//$("#debug").html("JugadoresInvitados: "+ jugadoresInvitados +'Anfitrion: '+ socket.socket.sessionid);			
 			for (var i = jugadoresInvitados.length - 1; i > -1; i--)
 			{
 				socket.emit('limpiaInvitacionEnviada',
 					{jugadorInvitado:jugadoresInvitados[i], jugadorAnfitrion:socket.socket.sessionid});
 				borraPorIndice(jugadoresInvitados,i);	
 			}
-			//$("#debug2").html("JugadoresInvitados: " + jugadoresInvitados);
-			
-			//$("#debug").html("Invitaciones: "+ listaInvitaciones +'Anfitrion: '+ socket.socket.sessionid);
+
 			//Declina invitaciones sin contestar			
 			for (var i = listaInvitaciones.length -1; i > -1; i--)
 			{
@@ -123,7 +140,6 @@ socket.on('connection', function(dataConnection) {
 				$('#declinar_'+listaInvitaciones[i]).parents('.invitacion').remove();
 				borraPorIndice(listaInvitaciones,i);
 			}
-			//$("#debug2").html("Invitaciones: " + listaInvitaciones);			
 			
 			$('#dashboard').show();
 			$('.boton').bind('click',handler);
@@ -134,15 +150,11 @@ socket.on('connection', function(dataConnection) {
 			//data -> idAnfitrion
 			var idALimpiar = data.idAnfitrion;
 			var indice = listaInvitaciones.indexOf(idALimpiar);
-			//$('#debug').html('Anfitrion '+idALimpiar+' listaInvitaciones '+listaInvitaciones+' indice: '+indice);
 			if(indice != -1)
 			{
 				$('#aceptar_'+idALimpiar).parent().remove();
-				//$('#debug').html('listaInvitaciones '+listaInvitaciones + ' indice: '+indice+' idALimpiar '+idALimpiar);
 				borraPorIndice(listaInvitaciones, indice);
-				//$('#debug2').html('listaInvitaciones '+listaInvitaciones);
 			}
-			//$('#debug2').html('INVITACIONES RESTANTES: ' + listaInvitaciones);
 		});
 
 		function borraPorIndice(arr, indice) {
@@ -220,7 +232,6 @@ socket.on('connection', function(dataConnection) {
 			var html = '<div class="invitacion">' + data.nombreUsuario +
 			           '<a href="#" id="aceptar_' + data.id +
 			           '"> Aceptar</a> | <a href="#" id="declinar_'+data.id+'">Declinar</a></div>';
-			$('#debug').html('ANFITRION: '+data.id+' NOMBRE: '+data.nombreUsuario);
 			if(!jugando)
 			{
 				$('#invitaciones').append(html);//.append('<br/>');
@@ -231,7 +242,6 @@ socket.on('connection', function(dataConnection) {
 				// Asigna el evento click a 'ACEPTACION'
 				$('#aceptar_'+data.id).bind('click', function() {
 					//jugador1 -> el que invita; jugador2 -> quien responde
-					//$('.jugadores').unbind('click');
 					borrarInvitacionesRecibidas(data);
 					$('.jugadores').click(function(){return false;});
 					jugando = true;
@@ -243,12 +253,10 @@ socket.on('connection', function(dataConnection) {
 					socket.emit('declinar', {jugador1Id:data.id, jugador2Id:socket.socket.sessionid});
 					$('#declinar_'+data.id).parents('.invitacion').remove();
 					
-					$("#debug").html(listaInvitaciones + 'Antes');
 					//Remueve el jugador de la lista de invitaciones recibidas
 					var indice = listaInvitaciones.indexOf(data.id);
 					if(indice != -1)
 					{ borraPorIndice(listaInvitaciones,indice); }
-					$("#debug2").html(listaInvitaciones + 'Despues');					
 				});
 
 				// Avisa de invitacion entregada
@@ -270,14 +278,11 @@ socket.on('connection', function(dataConnection) {
 
 			var html = '<div class="invitado">' + data.nombreInvitado + '</div>';
 			$('#Invitados').append(html);
-
-			$('#debug').html('INVITADO: ' + data.idResponde + 'NOMBRE: ' + data.nombreInvitado);
 		});
 
 
 		function borrarInvitacionesRecibidas (data) {
 			//data -> contiene sessionid y nombreUsuario de quien invita
-			//$('#debug').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
 			//Declina las invitaciones abiertas
 			for (var i = 0; i < listaInvitaciones.length; i++)
 				{
@@ -287,7 +292,6 @@ socket.on('connection', function(dataConnection) {
 							$('#declinar_'+data.id).parents('.invitacion').remove();
 						}
 					}
-			//$('#debug2').html('longitud: '+listaInvitaciones.length + ' lista: '+listaInvitaciones);
 			for (var i = listaInvitaciones.length - 1; i > -1; i--)
 					borraPorIndice(listaInvitaciones,i);
 			$('#invitaciones').empty();
@@ -299,7 +303,6 @@ socket.on('connection', function(dataConnection) {
 			alert(data.vieneDe + ' ha declinado tu invitacion.');
 			// Elimina de la lista de invitados
 			borraPorIndice(jugadoresInvitados,jugadoresInvitados.indexOf(data.vieneDe))
-			//$('#debug').html('JUGADORES INVITADOS:' + jugadoresInvitados);
 		});
 
 
@@ -387,18 +390,3 @@ $(document).ready(function() {
 	$('#continuar').hide(); // Esconde el link de continuar
 
 });
-
-/*
-var html = '<div class="invitacion">' + data.nombreUsuario +
-			           '<a href="#" id="aceptar_' + data.id +
-			           '"> Aceptar</a> | <a href="#" id="declinar_'+data.id+'">Declinar</a></div>';
-
-
-var html = '<ul>';
-			for (var i = 0; i < data.jugadores.length; i++)
-				if (data.jugadores[i].id != socket.socket.sessionid) // Pone en html jugadores diferentes al de la sesion
-					html += '<li><a href="#" class="jugadores" id="' + data.jugadores[i].id +
-					 '">' + data.jugadores[i].nombreUsuario + '</a></li>';
-					html += '</ul>';
-
-*/			           

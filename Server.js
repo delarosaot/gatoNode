@@ -42,21 +42,22 @@ io.sockets.on('connection', function (socket) {
 	// Desconexion de un cliente
 	socket.on('disconnect', function() {
 		
-		sys.puts('cliente desconectado');
+		sys.puts('CLIENTE DESCONECTADO');
 		var juego = regresaJuegoPorJugadorId(socket.id);
 		if (juego)
 		{
 			juego.cancelar(socket.id); // Cancela el juego
 			borraJuego(juego); // Elimina el juego de la lista
 		}
-		
+
+		var jugadorABorrar = regresaJugadorPorId(socket.id);
 		borraJugadorPorId(socket.id); // Elimina al jugador
 		
 		//Se envia lista de jugadores actualizada
 		mybroadcast(socket, 'actualizarConteoDeJugadores',{jugadores:listaJugadores});
+
 		//Se envia jugador que se desconecta
-		var jugadorABorrar = regresaJugadorPorId(socket.id);
-		mybroadcast(socket, 'actualizaListaInvitados', {jugadorABorrar:jugadorABorrar});
+		mybroadcast(socket, 'actualizaListaInvitados', {jugadorABorrar:jugadorABorrar, jugadores:listaJugadores});
 	});
 		
 	socket.on('jugada', function(data) {
